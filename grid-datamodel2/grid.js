@@ -14,7 +14,8 @@ $.widget( "ui.grid", {
 	options: {
 		columns: null,
 		type: null,
-		rowTemplate: null
+		rowTemplate: null,
+		editable: []
 	},
 	_create: function() {
 		var that = this;
