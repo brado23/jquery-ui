@@ -17,8 +17,8 @@
                         var pageNumber;
                         var pageCount;
 
-                        var pageUpButton = $("<input type='button'/>").button({ label: "Page Up" }).click(function () { setPage(pageNumber - 1, true); });
-                        var pageDownButton = $("<input type='button'/>").button({ label: "Page Down" }).click(function () { setPage(pageNumber + 1, true); });
+                        var pageUpButton = $("<input type='button' value='Page Up'/>").click(function () { setPage(pageNumber - 1, true); });
+                        var pageDownButton = $("<input type='button' value='Page Down'/>").click(function () { setPage(pageNumber + 1, true); });
 
                         $(this).empty().append(pageUpButton).append(pageDownButton);
                         setPage(0, false);  // Prime the data source with paging options.  Initial enabling/disabling of paging buttons.
@@ -43,8 +43,8 @@
                                 }
                             }
 
-                            pageUpButton.button("option", "disabled", pageCount === undefined || pageNumber === 0);
-                            pageDownButton.button("option", "disabled", pageCount === undefined || pageNumber >= pageCount - 1);
+                            pageUpButton.attr("disabled", pageCount === undefined || pageNumber === 0 ? "disabled" : "");
+                            pageDownButton.attr("disabled", pageCount === undefined || pageNumber >= pageCount - 1 ? "disabled" : "");
                         };
 
                         $(this).data("__pager__", {
