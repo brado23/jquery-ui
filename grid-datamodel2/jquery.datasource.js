@@ -80,7 +80,7 @@
 
     DataSource.prototype = {
         _refreshingHandler: null,
-        _refreshHandler: null,
+        _refreshedHandler: null,
 
         _sortProperty: null,  // TODO -- Generalize these to [ { property: ..., direction: ... } ].
         _sortDir: null,
@@ -123,13 +123,15 @@
                     this._applyOptions(options);
                 }
             }
+            $(this).trigger("refreshing");
             if (this._refreshingHandler) {
                 this._refreshingHandler();
             }
             var self = this;
             this._refresh(options, function () {
-                if (self._refreshHandler) {
-                    self._refreshHandler();
+                $(self).trigger("refreshed");
+                if (self._refreshedHandler) {
+                    self._refreshedHandler();
                 }
             });
             return this;
@@ -153,8 +155,8 @@
                     this._refreshingHandler = value;
                     break;
 
-                case "refresh":
-                    this._refreshHandler = value;
+                case "refreshed":
+                    this._refreshedHandler = value;
                     break;
 
                 default:
@@ -167,7 +169,7 @@
             options = options || {};
 
             var self = this;
-            $.each([ "filter", "sort", "paging", "refreshing", "refresh" ], function (index, optionName) {
+            $.each([ "filter", "sort", "paging", "refreshing", "refreshed" ], function (index, optionName) {
                 self._applyOption(optionName, options[optionName]);
             });
         },

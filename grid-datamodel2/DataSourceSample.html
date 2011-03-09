@@ -10,9 +10,11 @@
 	<script src="jquery.tmplPlus.js"></script>
 	<script src="../ui/jquery.ui.core.js"></script>
 	<script src="../ui/jquery.ui.widget.js"></script>
+	<script src="../ui/jquery.ui.button.js"></script>
 	<script src="grid.js"></script>
 	<script src="jquery.datalink2.js"></script>
 	<script src="jquery.datasource.js"></script>
+	<script src="jquery.pager.js"></script>
 
 	<script>
 
@@ -59,7 +61,7 @@
 		// We'll dynamically reconfigure the filter on this dataSource to change the contents of filteredLocalDevelopers.
 		$([ filteredLocalDevelopers ]).dataSource({
 			inputArray: localDevelopers,
-			refresh: function () {  // With grid use data-linking to collections, this wouldn't be needed.
+			refreshed: function () {  // With grid use data-linking to collections, this wouldn't be needed.
 				developersGrid.refresh();
 			}
 		}).refresh();  // refresh() causes the dataSource to update the contents of the array to which it's bound.
@@ -88,14 +90,14 @@
 		// into a URL to $.ajax.  I stole this urlMapper technique from Boris' earlier data model prototype.
 		$([ genres ]).dataSource($.extend({}, $.dataSource.oDataSettings, {
 			path: "http://odata.netflix.com/Catalog/Genres",
-			refresh: function () {  // With grid use data-linking to collections, this wouldn't be needed.
+			refreshed: function () {  // With grid use data-linking to collections, this wouldn't be needed.
 				genresGrid.refresh();
-			},
-			paging: { take: 10 }
-		})).refresh();
+			}
+		}));
 
 		var sorted;
 		$("#sortGenres").click(function () {
+			$("#genresPager").pager("setPage", { pageNumber: 0, refresh: false });  // Changing sort resets to page zero.
 			if (sorted) {
 				$([ genres ]).dataSource().option("sort").refresh();
 			} else {
@@ -104,6 +106,13 @@
 			sorted = !sorted;
 			$("#sortGenres").val(sorted ? "Remove sort" : "Sort genres");
 		});
+
+		$("#genresPager").pager({
+			dataSource: $([ genres ]).dataSource(),
+			pageSize: 10
+		});
+
+		$([ genres ]).dataSource().refresh();
 	});
 	</script>
 </head>
@@ -128,6 +137,8 @@
 <p><input id="filterDevelopers" type="button" value="Filter developers"></input></p>
 
 <h2>remote data source</h2>
+<p><div id="genresPager"></div></p>
+
 <p>
 <table id="genres">
 	<thead>
