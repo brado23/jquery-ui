@@ -94,6 +94,16 @@
 			}
 		}));
 
+		// Bind a paging control to the data source feeding "genres".  The paging control determines the paging options
+		// on the data source and refreshes the data source on paging clicks.
+		// Notice that the pager has no awareness of the "genres" array, since it doesn't need it.
+		$("#genresPager").pager({
+			dataSource: $([ genres ]).dataSource(),
+			pageSize: 10
+		});
+
+		// An example of how an app itself can control the query options on a data source, just as a control might.
+		// You can imagine lifting code similar to this into a sorting control, like that pager used above.
 		var sorted;
 		$("#sortGenres").click(function () {
 			$("#genresPager").pager("setPage", { pageNumber: 0, refresh: false });  // Changing sort resets to page zero.
@@ -106,11 +116,8 @@
 			$("#sortGenres").val(sorted ? "Remove sort" : "Sort genres");
 		});
 
-		$("#genresPager").pager({
-			dataSource: $([ genres ]).dataSource(),
-			pageSize: 10
-		});
-
+		// Prime the data source to populate the "genres" array, which in turn will cause the grid to wake up
+		// and render the new contents of the array.
 		$([ genres ]).dataSource().refresh();
 	});
 	</script>
