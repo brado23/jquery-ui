@@ -56,7 +56,15 @@ var fnSetters = {
 			} else {
 				var elementsToRemove = arr.slice( index, numToRemove );
 				if ( elementsToAdd.length ) {
-					return { change: "move", oldIndex: index, oldItems: elementsToRemove, newIndex: index, newItems: elementsToAdd };
+					var move = elementsToAdd.length === elementsToRemove.length &&
+						$.grep( elementsToAdd, function ( elementToAdd, index ) {
+							return elementToAdd !== elementsToRemove[ index ];
+						}).length === 0;
+					if ( move ) {
+						return { change: "move", oldIndex: index, oldItems: elementsToRemove, newIndex: index, newItems: elementsToAdd };
+					} else {
+						return { change: "replace", oldIndex: index, oldItems: elementsToRemove, newIndex: index, newItems: elementsToAdd };
+					}
 				} else {
 					return { change: "remove", oldIndex: index, oldItems: elementsToRemove };
 				}
@@ -70,8 +78,8 @@ var fnSetters = {
 			if ( numToMove > 0 ) {
 				var fromIndex = arguments[ 0 ], 
 					toIndex = arguments[ 2 ], 
-					removed = arr.splice( fromIndex, numToMove );
-				return { change: "move", oldIndex: fromIndex, oldItems: removed, newIndex: toIndex };
+					elementsToMove = arr.splice( fromIndex, numToMove );
+				return { change: "move", oldIndex: fromIndex, oldItems: elementsToMove, newIndex: toIndex, newItems: elementsToMove };
 			}
 		}
 	},

@@ -72,8 +72,11 @@
         }
 
         this.itemsArray = options.targetArray || [];
-        // TODO -- Bind to the "arrayChange" event on itemsArray.  LocalDataSource subclass would translate adds/removes
-        // onto its inputItemsArray.  RemoteDataSource would commit the adds/removes directly or accumulate a changelist.
+        var self = this;
+        this._arrayChangeHandler = function (change) {
+            self._handleArrayChange(change);
+        };
+        $([ this.itemsArray ]).bind("changeArray", this._arrayChangeHandler);
 
         this._applyOptions(options);
     };
@@ -95,6 +98,7 @@
         destroy: function () {
             if (this.itemsArray) {
                 delete this.itemsArray.__dataSource__;
+                this.itemsArray.unbind("changeArray", this._arrayChangeHandler);
                 this.itemsArray = null;
             }
         },
@@ -172,6 +176,10 @@
             $.each([ "filter", "sort", "paging", "refreshing", "refreshed" ], function (index, optionName) {
                 self._applyOption(optionName, options[optionName]);
             });
+        },
+
+        _handleArrayChange: function (change) {
+            throw "'_handleArrayChange' is a pure virtual function";
         },
 
         _processFilter: function (filter) {
@@ -328,6 +336,33 @@
             };
         },
 
+        _handleArrayChange: function (change) {
+            switch (change.change) {
+            case "add":
+                // change.newIndex is with repect to itemsArray (our output array).  We ignore it here
+                // since there is no meaningful mapping onto _inputItemsArray.
+                $.changeArray.apply(null, [ this._inputItemsArray, "push" ].concat(change.newItems));
+                break;
+
+            case "remove":
+                var self = this;
+                $.each(change.oldItems, function () {
+                    $.changeArray(self._inputItemsArray, "splice", $.inArray(this, self._inputItemsArray), 1);
+                });
+                break;
+
+            case "reset":
+            case "move":
+            case "replace":
+                throw "Array change operation '" + change.change + "' is not supported by this data source.";
+                break;
+
+            default:
+                console.log("Unrecognized 'changeArray' event args.");
+                break;
+            }
+        },
+
         _normalizePropertyValue: function (item, property) {
             return item[property] || "";
         },
@@ -382,6 +417,37 @@
         _path: null,
         _queryParams: null,
         _resultsFilter: null,
+
+        _handleArrayChange: function (change) {
+            // TODO -- This is where we would develop an SPI that allows for pushing changes back to the server.
+            // This could be done by logging changes and POSTing during some $().dataSource().commit().
+            // It could also directly call $.ajax to issue a POST per array or property change.
+            switch (change.change) {
+            case "add":
+                console.log("Array 'add' at index " + change.newIndex + " of " + change.newItems.toString() + ".");
+                break;
+
+            case "remove":
+                console.log("Array 'remove' at index " + change.oldIndex + " of " + change.oldItems.toString() + ".");
+                break;
+
+            case "reset":
+                console.log("Array 'reset'.");
+                break;
+
+            case "move":
+                console.log("Array 'move' from index " + change.oldIndex + " of " + change.oldItems.toString() + " to index " + change.newIndex + " of " + change.newItems.toString() + ".");
+                break;
+
+            case "replace":
+                console.log("Array 'replace' from index " + change.oldIndex + " of " + change.oldItems.toString() + " to index " + change.newIndex + " of " + change.newItems.toString() + ".");
+                break;
+
+            default:
+                console.log("Unrecognized 'changeArray' event args.");
+                break;
+            }
+        },
 
         _refresh: function (options, completed) {
             var self = this,

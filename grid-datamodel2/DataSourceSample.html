@@ -80,7 +80,7 @@
 			columns: [ "Name" ],
 			source: genres
 		}).data( "grid" );
-		$.setField(genresGrid, "source", genres);  // TODO -- The widget factory deeply copies options, which loses filteredLocalDevelopers.
+		$.setField(genresGrid, "source", genres);  // TODO -- The widget factory deeply copies options, which loses genres.
 
 		// No "inputArray" option means the dataSource should bind to remote data, employing options.urlMapper to render query options
 		// into a URL to $.ajax.  I stole this urlMapper technique from Boris' earlier data model prototype.
@@ -109,6 +109,16 @@
 			}
 			sorted = !sorted;
 			$("#sortGenres").val(sorted ? "Remove sort" : "Sort genres");
+		});
+
+		// CUD operations are directed at our array and its contained items.  Our grid is listening for change events
+		// on arrays and (later) on items, reflecting these changes in the DOM.  Our data source is similarly listening,
+		// turning change events into POSTs (one per change or by logging changes for one POST on commit).
+		$("#addGenre").click(function () {
+			$.changeArray(genres, "unshift", { Name: "19th Century Period Pieces" });
+		});
+		$("#deleteGenre").click(function () {
+			$.changeArray(genres, "shift");
 		});
 
 		// Prime the data source to populate the "genres" array, which in turn will cause the grid to wake up
@@ -153,6 +163,8 @@
 </p>
 
 <p><input id="sortGenres" type="button" value="Sort genres"></input></p>
+<p><input id="addGenre" type="button" value="Add a genre"></input></p>
+<p><input id="deleteGenre" type="button" value="Delete first genre"></input></p>
 
 </body>
 </html>
