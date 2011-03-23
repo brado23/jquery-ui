@@ -38,15 +38,15 @@ $.widget( "ui.grid", {
 				});
 			}
 		});
-		that._source();
+		that._updateSource(that.options.source, true);
 		$( that ).bind( "changeField", function( event, field, value ) {
 			if ( field === "source" ) {
-				that._source();
+				that._updateSource(that.source);
 			}
 		});
 		$( that.options ).bind( "changeField", function( event, field, value ) {
 			if ( field === "source" ) {
-				that._source();
+				that._updateSource(that.options.source, true);
 			}
 		});
 	},
@@ -55,19 +55,34 @@ $.widget( "ui.grid", {
 			template = this.options.rowTemplate,
 			linkOptions = $.link.defaults.nomap.form.to;
 				
-		$.tmpl( template, this.source, { rendered: function( tmplItem ){
+		$.tmpl( template, this._source, { rendered: function( tmplItem ){
 			$.link( tmplItem.nodes[0], tmplItem.data, linkOptions );
 		}}).appendTo( tbody );
 
 		tbody.find( "td" ).addClass( "ui-widget-content" );
 	},
 		
-	_source: function() {
-		var source = this.options.source;
-		if ( source !== this.source) {
+	_updateSource: function(newSource, setViaOptions) {
+		if ( newSource !== this._source ) {
+			if ( this._source && this._arrayChangeHandler ) {
+				$([ this._source ]).unbind( "changeArray", this._arrayChangeHandler );
+				this._arrayChangeHandler = null;
+			}
+
 			// doesn't cover generating the columns option or generating headers when option is specified
-			this.source = source || null;
-			this.refresh(); 
+			this._source = newSource || null;
+
+			if ( this._source ) {
+				var that = this;
+				this._arrayChangeHandler = function () {
+					that.refresh();
+				};
+				$([ this._source ]).bind( "changeArray", this._arrayChangeHandler );
+			}
+
+			this.refresh();
+
+			$.setField( setViaOptions ? this : this.options, "source", this._source );
 		}
 	},
 	

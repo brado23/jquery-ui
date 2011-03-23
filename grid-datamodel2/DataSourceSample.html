@@ -53,16 +53,13 @@
 			columns: [ "firstName", "lastName", "country" ],
 			source: filteredLocalDevelopers
 		}).data( "grid" );
-		developersGrid.source = filteredLocalDevelopers;  // TODO -- The widget factory deeply copies options, which loses filteredLocalDevelopers.
+		$.setField(developersGrid, "source", filteredLocalDevelopers);  // TODO -- The widget factory deeply copies options, which loses filteredLocalDevelopers.
 
 		// The dataSource bound to filteredLocalDevelopers controls its contents.
 		// The "inputArray" option causes the dataSource to apply query options locally on refresh().
 		// We'll dynamically reconfigure the filter on this dataSource to change the contents of filteredLocalDevelopers.
 		$([ filteredLocalDevelopers ]).dataSource({
-			inputArray: localDevelopers,
-			refreshed: function () {  // With grid use data-linking to collections, this wouldn't be needed.
-				developersGrid.refresh();
-			}
+			inputArray: localDevelopers
 		}).refresh();  // refresh() causes the dataSource to update the contents of the array to which it's bound.
 
 		// Dynamically configure the query options on the dataSource.  refresh() to update the array contents.
@@ -83,16 +80,14 @@
 			columns: [ "Name" ],
 			source: genres
 		}).data( "grid" );
-		genresGrid.source = genres;  // TODO -- The widget factory deeply copies options, which loses genres.
+		$.setField(genresGrid, "source", genres);  // TODO -- The widget factory deeply copies options, which loses filteredLocalDevelopers.
 
 		// No "inputArray" option means the dataSource should bind to remote data, employing options.urlMapper to render query options
 		// into a URL to $.ajax.  I stole this urlMapper technique from Boris' earlier data model prototype.
-		$([ genres ]).dataSource($.extend({}, $.dataSource.oDataSettings, {
-			path: "http://odata.netflix.com/Catalog/Genres",
-			refreshed: function () {  // With grid use data-linking to collections, this wouldn't be needed.
-				genresGrid.refresh();
-			}
-		}));
+		var options = $.extend({
+			path: "http://odata.netflix.com/Catalog/Genres"
+		}, $.dataSource.oDataSettings);
+		$([ genres ]).dataSource(options);
 
 		// Bind a paging control to the data source feeding "genres".  The paging control determines the paging options
 		// on the data source and refreshes the data source on paging clicks.
