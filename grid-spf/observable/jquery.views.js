@@ -359,6 +359,7 @@ function linkViews( map, node, depth, parent, nextNode, data, index ) {
 	function viewCreated( view ){
 		if ( view.data ) {
 			if ( view.bindings.length ) {
+				map.link &= !nextNode; // If nextNode is defined then we are creating some inserted views, so bind here,  sSince there will be no <!--/tmpl--> marker encountered, and no binding during parent View creation
 				link( map, $([ view.data ]), $( view.bindings ), view );
 			}
 			link( map, $([ view.data ]), undefined, view );

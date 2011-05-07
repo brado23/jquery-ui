@@ -47,7 +47,7 @@ $.widget( "ui.datasource", {
 	totalPages: function() {
 		return Math.ceil(this.totalCount / this.options.paging.limit)
 	},
-	refresh: function( callback ) {
+	refresh: function( callback ) { // TODO Not using callback...
 		this._trigger( "request" );
 
 		var request = $.extend({}, this.options, {
