@@ -11,7 +11,7 @@ $.widget( "ui.datasource", {
 		filter: null
 	},
 	toArray: function() {
-		return this.data;
+		return this.options.data;
 	},
 	_setOption: function(key, value) {
 		// reset offset to 0 when changing limit
@@ -48,9 +48,6 @@ $.widget( "ui.datasource", {
 		return Math.ceil(this.totalCount / this.options.paging.limit)
 	},
 	refresh: function( callback ) {
-		if ( callback ) {
-			this.element.one( "datasourceresponse", callback );
-		}
 		this._trigger( "request" );
 
 		var request = $.extend({}, this.options, {
@@ -58,8 +55,8 @@ $.widget( "ui.datasource", {
 		});
 		var that = this;
         this.options.source( request, function( data, totalCount ) {
-			that.data = data;
 			that.totalCount = totalCount;
+			$.observable( that.options.data ).replace( data );
 			that._trigger( "response" );
 		});
 
