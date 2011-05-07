@@ -4,6 +4,7 @@ $.widget( "ui.odataDatasource", $.ui.datasource, {
 	// all datasource implementations share a common event prefix
 	widgetEventPrefix: "datasource",
 	options: {
+		data: [],
 		paging: {
 			limit: 10
 		},
@@ -21,7 +22,7 @@ $.widget( "ui.odataDatasource", $.ui.datasource, {
 					sorts[sorts.length] = field.replace(/-(.+)/, "$1 desc");
 				});
 	            data["$orderby"] = sorts.join(",");
-				
+
 			}
 			if (request.filter) {
 				var filters = [];
@@ -37,10 +38,10 @@ $.widget( "ui.odataDatasource", $.ui.datasource, {
 							"==": "eq",
 							"!=": "ne"
 						};
-		                filters[filters.length] = property + " " + operators[filter.operator] + " " + 
+		                filters[filters.length] = property + " " + operators[filter.operator] + " " +
 		                    (typeof filter.value === "string" ? ("'" + filter.value + "'") : filter.value);
 					}
-					
+
 	            });
 				data["$filter"] = filters.join(" and ");
 	        }
