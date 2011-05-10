@@ -136,13 +136,13 @@
 		function deleteSelectedDeveloper() {
 			var selectedItem = developersDataGrid.options.selectedItem;
 			if ( selectedItem ) {
-				var prevIndex = selectedItem.index;
+				var index = selectedItem.index;
 				if ( itemInvalid( selectedItem )) {
-					prevIndex++; // Just need to set selection. Deletion will occur in onSelectChange
+					index++; // Just need to set selection. Deletion will occur in onSelectChange
 				} else {
-					$.observable( developersInput ).splice( prevIndex, 1 );
+					$.observable( developersInput ).splice( index, 1 );
 				}
-				developersDataGrid.select( prevIndex );
+				developersDataGrid.select( index );
 			}
 		}
 

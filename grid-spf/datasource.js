@@ -55,7 +55,7 @@ $.widget( "ui.datasource", {
 		});
 		var that = this;
         this.options.source( request, function( data, totalCount ) {
-			that.totalCount = totalCount;
+			$.observable( that ).setField( "totalCount", totalCount );
 			$.observable( that.options.data ).replace( data );
 			that._trigger( "response" );
 		});
