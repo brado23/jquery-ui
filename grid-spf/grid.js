@@ -29,6 +29,32 @@ $.widget( "ui.grid", {
 		});
 		this.refresh();
 	},
+	_setOption: function( key, value ) {
+	 	switch (key) {
+			case "selectedItem":
+				if ( typeof value !== "object" ) { // support either viewItem or index as value
+					value = this.options.viewItems[ value ]; // treat as an index	(string or number)
+				}
+				var selectedViewItem = this.options.selectedItem;
+				if ( selectedViewItem != value ) {
+					if ( selectedViewItem ) {
+						$( selectedViewItem.nodes ).removeClass( "grid-selected-row");
+					}
+					if (value) {
+						$( value.nodes ).addClass( "grid-selected-row");
+					}
+					// Trigger a specific select event (in addition to the generic objectChange event for selectedItem).
+					this._super( "_setOption", key, value );
+					this._trigger( "select", null, {
+						selectedItem: value
+					});
+				}
+			default:
+				this._super( "_setOption", key, value );
+		}
+		// TODO - consider overriding/replacing base widget implementation
+		$( this.options ).triggerHandler( "objectChange", { path: key, value: value }); // Make all options changes observable
+	},
 	refresh: function() {
 		var tbody = this.element.find( "tbody" ).empty(),
 			template = this.options.rowTemplate,
@@ -42,26 +68,22 @@ $.widget( "ui.grid", {
 		$([ source ]).bind( "arrayChange", function( event, args ){
 			switch( args.change ) {
 				case "remove":
-					$.observable( that.options ).setField( "selectedItem", null );
+					if ( args.oldItems[0] === that.selectedData() ) {
+						that.select();
+					}
 			}
 		});
+		if ( this.options.selectedItem ) {
+			this.select( this.options.selectedItem );
+		}
 	},
 
-	select: function( viewItem ) {
-		var selectedViewItem = this.options.selectedItem;
-		if ( selectedViewItem != viewItem ) {
-			if ( selectedViewItem ) {
-				$( selectedViewItem.nodes ).removeClass( "grid-selected-row");
-			}
-			if (viewItem) {
-				$( viewItem.nodes ).addClass( "grid-selected-row");
-			}
-			$.observable( this.options ).setField( "selectedItem", viewItem );
-			// Trigger a specific select event (in addition to the generic fieldChanged event for selectedItem).
-			this._trigger( "select", null, {
-				selectedItem: viewItem
-			});
-		}
+	select: function( viewItem ) { // accept index or viewItem
+		this._setOption( "selectedItem", viewItem );
+	},
+
+	selectedData: function() { // accept index or viewItem
+		return this.options.selectedItem && this.options.selectedItem.data;
 	},
 
 	_columns: function() {
