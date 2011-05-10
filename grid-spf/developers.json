@@ -1,5 +1,12 @@
 [
 	{
+		"firstName": "Adam",
+		"lastName": "Piano",
+		"country": "USA",
+		"twitter": "ajpiano",
+		"github": "ajpiano"
+	},
+	{
 		"firstName": "Richard",
 		"lastName": "Worth",
 		"country": "USA",
@@ -26,13 +33,6 @@
 		"country": "Canada",
 		"twitter": "cworth",
 		"github": "cworth"
-	},
-	{
-		"firstName": "Adam",
-		"lastName": "Piano",
-		"country": "USA",
-		"twitter": "ajpiano",
-		"github": "ajpiano"
 	},
 	{
 		"firstName": "Remy",

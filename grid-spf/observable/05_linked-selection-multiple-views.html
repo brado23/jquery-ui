@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Grid: Observable Data</title>
+	<title>Multiple grids and Observable Data</title>
 	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css"/>
 	<link rel="stylesheet" href="../grid.css"/>
 	<link href="editable.css" rel="stylesheet"/>
@@ -20,7 +20,7 @@
 
 	<script>
 
-	var developersData = [], developersInput, developersDatasource, moviesDatasource, developersDataGrid;
+	var developersData = [], developersInput, developersDatasource, developersDataGrid, developersViewGrid, selectedItem, adding = false;
 	$.ajax({
 		dataType: "json",
 		url: "../developers.json",
@@ -91,14 +91,16 @@
 		developersDataGrid = $( "#developers-data" ).grid({
 			selectMode: "single",
 			columns: [ "firstName", "lastName", "country" ],
-			source: developersInput
+			source: developersInput,
+			select: onDevDataSelChange
 		}).data( "grid" );
 
-		$( "#developers-view" ).grid({
-			selectMode: "none",
+		developersViewGrid = $( "#developers-view" ).grid({
+			selectMode: "single",
 			columns: [ "firstName", "lastName", "country" ],
-			source: developersData
-		});
+			source: developersData,
+			select: onDevViewSelChange
+		}).data( "grid" );
 
 		$( "#filterDevelopers" ).filterControl( developersDatasource );
 		$( "#sortDevelopers" ).sorterControl( developersDatasource );
@@ -108,45 +110,88 @@
 
 		developersDatasource.refresh();
 
-		$.dataLink( developersDataGrid.options, function( event, args ) {
-			if ( args.path === "selectedItem" ) {
-				if ( args.value ) {
-					var selectedData = args.value.data;
-					$( "#developerDetail" )
-						.html(
-							$( "#detailViewTemplate" ).render( selectedData )
-						)
-						.dataLink( selectedData );
-				} else {
-					$( "#developerDetail" ).empty();
-				}
+		developersDataGrid.select( 0 );
+
+		//	TODO - replace with this
+		//	$.dataLink( developersDataGrid, developersViewGrid, { from:"options.selectedItem", to:"options.selectedItem" } );
+
+		function onDevDataSelChange( event, args ) {
+			if ( itemInvalid( selectedItem ) ) {
+				$.observable( developersInput ).splice( selectedItem.index, 1 );
 			}
-		});
+			if ( args.selectedItem ) {
+				selectedItem = args.selectedItem;
+				$( "#developerDetail" )
+					.html(
+						$( "#detailViewTemplate" ).render( selectedItem.data )
+					)
+					.dataLink( selectedItem.data );
+			} else {
+				$( "#developerDetail" ).empty();
+				selectedItem = null;
+			}
+			var devViewSelData = developersViewGrid.selectedData(),
+				selData = selectedItem && selectedItem.data;
+			if ( devViewSelData !== selData ) {
+				developersViewGrid.select( $.inArray( selData, developersData ));
+			}
+		}
+
+		function onDevViewSelChange( event, args ) {
+			var devSelData = developersDataGrid.selectedData(),
+				selData = args.selectedItem && args.selectedItem.data;
+			if ( selData && devSelData !== selData ) {
+				developersDataGrid.select( $.inArray( selData, developersInput ));
+			}
+		}
+
+		function itemInvalid( item ) {
+			var data = item && item.data;
+			return data && (data.firstName.length + data.lastName.length + data.country.length) === 0;
+		}
+
+		function deleteSelectedDeveloper() {
+			var selectedItem = developersDataGrid.options.selectedItem;
+			if ( selectedItem ) {
+				var prevIndex = selectedItem.index;
+				if ( itemInvalid( selectedItem )) {
+					prevIndex++; // Just need to set selection. Deletion will occur in onSelectChange
+				} else {
+					$.observable( developersInput ).splice( prevIndex, 1 );
+				}
+				developersDataGrid.select( prevIndex );
+			}
+		}
+
 
 		$("#addDeveloper" ).click( function () {
+			if ( itemInvalid( selectedItem )) {
+				return; // Current added developer has not been committed
+			}
+			adding = true;
 			var selectedItem = developersDataGrid.options.selectedItem,
-				insertAt = selectedItem ? selectedItem.index + 1 : 0;
-
-			$.observable( developersInput ).splice( insertAt, 0, {
-				firstName: $( "#firstName" ).val(),
-				lastName: $( "#lastName" ).val(),
-				country: $( "#country" ).val()
-			});
-
-			developersDataGrid.select( developersDataGrid.options.viewItems[ insertAt ]);
+				insertAt = selectedItem ? selectedItem.index : developersDataGrid.options.viewItems.length,
+				addedData = {
+					firstName: "",
+					lastName: "",
+					country: ""
+				};
+			$.observable( developersInput ).splice( insertAt, 0, addedData );
+			developersDataGrid.select( insertAt );
+			adding = false;
 		});
 
 		$( "#deleteDeveloper" ).click( function () {
-			var selectedItem = developersDataGrid.options.selectedItem;
-			if ( selectedItem ) {
-				$.observable( developersInput ).splice( selectedItem.index, 1 );
-				developersDataGrid.select( developersDataGrid.options.viewItems[ selectedItem.index ]);
-			}
+			deleteSelectedDeveloper();
 		});
 
-		$( "#developerDetail" ).delegate( "#okBtn", "click", function () {
-			developersDataGrid.select();
-		});
+		$( "#developerDetail" )
+			.delegate( "#okBtn", "click", function () {
+				developersDataGrid.select();
+			})
+			.delegate( "#deleteBtn", "click", function () {
+				deleteSelectedDeveloper();
+			});
 	});
 	</script>
 
@@ -211,14 +256,7 @@
 
 <h2>Change local data</h2>
 
-<button id="addDeveloper" >Insert developer after selected row</button>
-<div class="addperson">
-	<div>
-		<div><input id="firstName" type="text" value="Scott" /></div>
-		<div><input id="lastName" type="text" value="Worth" /></div>
-		<div><input id="country" type="text" value="UK" /></div>
-	</div>
-</div>
+<button id="addDeveloper" >Insert developer</button>
 <button id="deleteDeveloper" >Delete selected developer</button>
 
 <h2>Local data</h2>
@@ -239,11 +277,12 @@
 
 <script id="detailViewTemplate" type="text/x-jquery-tmpl">
 	<div>
-		<div class="title">Edit Person</div>
+		<div class="title">{{if adding}}Add{{else}}Edit{{/if}} Person</div>
 		<div><input data-jq-linkfrom="firstName" data-jq-linkto="firstName" value="${firstName}"/></div>
 		<div><input data-jq-linkfrom="lastName" data-jq-linkto="lastName" value="${lastName}"/></div>
 		<div><input data-jq-linkfrom="country" data-jq-linkto="country" value="${country}"/></div>
 		<span id="okBtn" >OK</span>
+		<span id="deleteBtn" >Delete</span>
 	</div>
 </script>
 
