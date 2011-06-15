@@ -15,6 +15,7 @@
 
 // TODO: use ui-accordion-header-active class and fix styling
 $.widget( "ui.accordion", {
+	version: "@VERSION",
 	options: {
 		active: 0,
 		animated: "slide",
@@ -432,7 +433,6 @@ $.widget( "ui.accordion", {
 });
 
 $.extend( $.ui.accordion, {
-	version: "@VERSION",
 	animations: {
 		slide: function( options, additions ) {
 			var showOverflow = options.toShow.css( "overflow" ),
@@ -486,9 +486,11 @@ $.extend( $.ui.accordion, {
 			$.each( fxAttrs, function( i, prop ) {
 				hideProps[ prop ] = "hide";
 
-				var parts = ( "" + $.css( options.toShow[0], prop ) ).match( /^([\d+-.]+)(.*)$/ );
+				var parts = ( "" + $.css( options.toShow[0], prop ) ).match( /^([\d+-.]+)(.*)$/ ),
+					// work around bug when a panel has no height - #7335
+					propVal = prop === "height" && parts[ 1 ] === "0" ? 1 : parts[ 1 ];
 				showProps[ prop ] = {
-					value: parts[ 1 ],
+					value: propVal,
 					unit: parts[ 2 ] || "px"
 				};
 			});

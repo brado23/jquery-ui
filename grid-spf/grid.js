@@ -1,10 +1,10 @@
 /*
  * Grid
- *
+ * 
  * Depends on:
  * tmpl
  * datastore
- *
+ * 
  * Optional:
  * extractingDatasource
  */
@@ -17,77 +17,37 @@ $.widget( "ui.grid", {
 	},
 	_create: function() {
 		var that = this;
-
+		
 		this._columns();
 		this._rowTemplate();
 		this.element.addClass( "ui-widget" );
 		this.element.find( "th" ).addClass( "ui-widget-header" );
 		this.element.delegate( "tbody > tr", "click", function( event ) {
-			if ( that.options.selectMode === "single" ) { //TODO add support for multiselect
-				that.select( $.view( this ));
-			}
+			that._trigger( "select", event, {
+				// TODO add item
+			});
 		});
-		this.refresh();
-	},
-	_setOption: function( key, value ) {
-	 	switch (key) {
-			case "selectedItem":
-				if ( typeof value !== "object" ) { // support either viewItem or index as value
-					value = this.options.viewItems[ value ]; // treat as an index	(string or number)
-				}
-				var selectedViewItem = this.options.selectedItem;
-				if ( selectedViewItem != value ) {
-					if ( selectedViewItem ) {
-						$( selectedViewItem.nodes ).removeClass( "grid-selected-row");
-					}
-					if (value) {
-						$( value.nodes ).addClass( "grid-selected-row");
-					}
-					// Trigger a specific select event (in addition to the generic objectChange event for selectedItem).
-					this._super( "_setOption", key, value );
-					this._trigger( "select", null, {
-						selectedItem: value
-					});
-				}
-			default:
-				this._super( "_setOption", key, value );
-		}
-		// TODO - consider overriding/replacing base widget implementation
-		$( this.options ).triggerHandler( "objectChange", { path: key, value: value }); // Make all options changes observable
+		$(this.options.source).bind("datasourceresponse", function() {
+			that.refresh();
+		});
 	},
 	refresh: function() {
+		// TODO this code assumes a single tbody which is not a safe assumption
 		var tbody = this.element.find( "tbody" ).empty(),
-			template = this.options.rowTemplate,
-			source = this.options.source,
-			that = this;
-
-		this.options.viewItems = tbody.html( $.render( template, source ))
-			 .dataLink( source )
-			 .view().views[0].views;
-
-		$([ source ]).bind( "arrayChange", function( event, args ){
-			switch( args.change ) {
-				case "remove":
-					if ( args.oldItems[0] === that.selectedData() ) {
-						that.select();
-					}
-			}
+			template = this.options.rowTemplate;
+		// TODO try to replace $.each with passing an array to $.tmpl, produced by this.items.something()
+		// TODO how to refresh a single row?
+		$.each( this.options.source.toArray(), function( itemId, item ) {
+			// TODO use item.toJSON() or a method like that to compute values to pass to tmpl
+			$.tmpl( template, item ).appendTo( tbody );
 		});
-		if ( this.options.selectedItem ) {
-			this.select( this.options.selectedItem );
-		}
+		tbody.find( "td" ).addClass( "ui-widget-content" );
+		this._trigger("refresh");
 	},
-
-	select: function( viewItem ) { // accept index or viewItem
-		this._setOption( "selectedItem", viewItem );
-	},
-
-	selectedData: function() { // accept index or viewItem
-		return this.options.selectedItem && this.options.selectedItem.data;
-	},
-
+	
 	_columns: function() {
 		if ( this.options.columns ) {
+			// TODO this code assumes any present th is a column header, but it may be a row header
 			if ( !this.element.find( "th" ).length ) {
 				// TODO improve this
 				var head = this.element.find("thead");
@@ -112,10 +72,10 @@ $.widget( "ui.grid", {
 			return;
 		}
 		var template = $.map( this.options.columns, function( field ) {
-			return "<td class='ui-widget-content' data-jq-linkfrom='" + field + "'>${" + field + "}</td>";
+			return "<td>${" + field + "}</td>";
 		}).join( "" );
 		template = "<tr>" + template + "</tr>";
-		this.options.rowTemplate = $.template( template );  // Compiled template
+		this.options.rowTemplate = template;
 	}
 });
 

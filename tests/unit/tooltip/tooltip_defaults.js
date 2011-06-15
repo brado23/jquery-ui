@@ -1,15 +1,20 @@
 commonWidgetTests( "tooltip", {
 	defaults: {
+		content: function() {},
 		disabled: false,
+		hide: true,
 		items: "[title]",
-		content: $.ui.tooltip.prototype.options.content,
 		position: {
-			my: "left center",
+			my: "left+15 center",
 			at: "right center",
-			offset: "15 0"
+			collision: "flip fit"
 		},
+		show: true,
+		tooltipClass: null,
 
 		// callbacks
-		create: null
+		close: null,
+		create: null,
+		open: null
 	}
 });
