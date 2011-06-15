@@ -6,20 +6,11 @@ $.widget( "ui.localDatasource", $.ui.datasource, {
 	widgetEventPrefix: "datasource",
 	_create: function() {
 		var that = this;
-		this.options.input = this.options.input || $.makeArray( this.options.data );
-
 		this.options.source = function( request, response) {
 			var sortedItems = that._sort( that._filter( that.options.input ) );
 			response( that._page( sortedItems ), sortedItems.length );
 		}
-
-		$.dataLink( this.options.input, function() {
-			that.refresh();
-		});
-// Note: the above could be replaced by the following equivalent code...
-//		$([ this.options.input ]).bind( "arrayChange", function() {
-//			that.refresh();
-//		});
+		this.refresh();
 	},
 	_filter: function( items ) {
 		if ( this.options.filter ) {
