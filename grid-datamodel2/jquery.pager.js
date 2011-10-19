@@ -21,20 +21,11 @@
                         var pageDownButton = $("<input type='button' value='Page Down'/>").click(function () { setPage(pageNumber + 1, true); });
 
                         $(this).empty().append(pageUpButton).append(pageDownButton);
-                        setPage(0, false);  // Prime the data source with paging options.  Initial enabling/disabling of paging buttons.
 
-                        function setPage(newPageNumber, refresh) {
-                            pageNumber = newPageNumber;
-                            dataSource.option("paging", { skip: pageNumber * pageSize, take: pageSize, includeTotalCount: true });
-                            if (refresh) {
-                                dataSource.refresh();
-                            }
-                            updatePager();
-                        };
-
+                        // Yuck.  Firefox won't let me forward reference these, so I put them amidst my logic here.
                         function updatePager(totalItemCount) {
                             if (totalItemCount) {
-                                pageCount = totalItemCount === 0 ? 1 : ((totalItemCount / pageSize) + (totalItemCount % pageSize ? 1 : 0));
+                                pageCount = totalItemCount === 0 ? 1 : Math.ceil(totalItemCount / pageSize);
                                 if (pageNumber >= pageCount) {
                                     // On last refresh, the item count decreased such that we're positioned past the last page.
                                     // Put us on the _new_ last page.
@@ -46,6 +37,18 @@
                             pageUpButton.attr("disabled", pageCount === undefined || pageNumber === 0 ? "disabled" : "");
                             pageDownButton.attr("disabled", pageCount === undefined || pageNumber >= pageCount - 1 ? "disabled" : "");
                         };
+
+                        // Yuck.  Firefox won't let me forward reference these, so I put them amidst my logic here.
+                        function setPage(newPageNumber, refresh) {
+                            pageNumber = newPageNumber;
+                            dataSource.option("paging", { skip: pageNumber * pageSize, take: pageSize, includeTotalCount: true });
+                            if (refresh) {
+                                dataSource.refresh();
+                            }
+                            updatePager();
+                        };
+
+                        setPage(0, false);  // Prime the data source with paging options.  Initial enabling/disabling of paging buttons.
 
                         $(this).data("__pager__", {
                             setPage: function (newPageNumber, refresh) {

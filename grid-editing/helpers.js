@@ -38,6 +38,10 @@ function capitalize( value ) {
 function meta( input ) {
 	var output = [];
 	for ( key in input ) {
+		if ( key === jQuery.expando ) {
+			continue;
+		}
+
 		var field = {
 			name: key,
 			label: capitalize(key),
@@ -51,7 +55,9 @@ function meta( input ) {
 		}
 		output.push(field);
 	}
-	console.log(input, output)
+	if ( typeof( console ) !== "undefined" ) {
+		console.log(input, output);
+	}
 	return output;
 }
 
