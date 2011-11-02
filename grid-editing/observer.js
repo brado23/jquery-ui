@@ -11,13 +11,13 @@
 		this.data = data;
 
 		// Proxy properties.
-		// TODO Is this a good idea?  What do we do about name collisions?
+		// TODO What do we do about name collisions?
 		if ( !$.isArray( data ) ) {
 			var that = this;
 			for ( var key in data ) {
 				this[ key ] = (function( key ) {
 					return function() {
-						return that.property( key ).data;
+						return that.property( key );
 					};
 				})(key);  // TODO Why the extra closure?
 			}
@@ -62,7 +62,7 @@
 						for ( var key in ui.newValues ) {
 							if ( !that.hasOwnProperty( key ) ) {
 								that[ key ] = function() {
-									return that.property( key ).data;
+									return that.property( key );
 								}
 							}
 						}
@@ -169,7 +169,8 @@
 		var isArrayIndex = this == "getAt";
 		observer.prototype[this] = function( key ) {
 			// this._bindHandler();  // TODO Fix enumeration and bind handler lazily?
-			return this._childObserver( key, isArrayIndex );
+			var childObserver = this._childObserver( key, isArrayIndex );
+			return childObserver.isObservable() ? childObserver : childObserver.data;  // TODO Why create an observer for scalars?
 		};
 	} );
 
