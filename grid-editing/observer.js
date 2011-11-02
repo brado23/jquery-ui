@@ -174,4 +174,31 @@
 		};
 	} );
 
+	var oldIsArray = $.isArray;
+
+	function fixArguments( args, arrayIndex ) {
+		var obj = args[ arrayIndex ];
+		if ( !oldIsArray( obj ) && obj.getAt ) {
+			args = [].slice.apply( args );
+			var dummyArray = [];
+			args[ arrayIndex ] = dummyArray;
+			for ( var i = 0; i < obj.data.length; i++ ) {  // TODO You can imagine an array observer that has a length property sync'd with the underlying array.
+				dummyArray.push( obj.getAt(i) );
+			}
+		}
+
+		return args;
+	}
+
+	$.each( [ "each", "map", "grep", "inArray" ], function( index, name ) {
+		var oldFn = $[ name ], index = name === "inArray" ? 1 : 0;
+		$[ name ] = function( obj ) {
+			return oldFn.apply( this, fixArguments( arguments, index ) );
+		}
+	} );
+
+	$.isArray = function( obj ) {
+		return oldIsArray( obj ) || obj instanceof observer && oldIsArray( obj.data );
+	};
+
 } )( jQuery );
