@@ -39,16 +39,12 @@
 			}
 		};
 
-		var observer;
+		var observer = $.observer( todos );
+		$( observer ).bind( "change", function () { deferredSaveAndRender(); } );
 		function renderList() {
 			updateAllChecked();
 			$( "#remaining" ).text( todos.length + (todos.length === 1 ? " item" : " items") + " remaining" );
 
-			if ( observer ) {
-				observer.dispose();
-			}
-			observer = $.observer(todos);
-			$(observer).bind("change", function () { deferredSaveAndRender(); });
 			list.empty().append( $( "#todo-list-item" ).tmpl( observer ) );
 		}
 		function update( index, checked ) {

@@ -3,15 +3,14 @@
  *
  */
 (function ( $, undefined ) {
-	$.observable = function( data, parent ) {
-		return new observable( data, parent );
+	$.observable = function( data ) {
+		return new observable( data );
 	};
 
 	var splice = [].splice;
 
-	function observable( data, parent ) {
+	function observable( data ) {
 		this.data = data;
-		this.parent = parent;
 	}
 	observable.prototype = {
 		data: null,

@@ -31,19 +31,17 @@ $.widget( "ui.grid", {
 				item: $( this ).data( "grid-item" )
 			});
 		});
-		if ( $.observable ) {
-			that._bindChange( that._toArray() );
-			$.observable( this.options.source ).bind( "insert remove replaceAll", function( event, ui ) {
-				if ( event.type === "insert" ) {
-					that._bindChange( ui.items );
-				} else if (event.type === "replaceAll" ) {
-					that._unbindChange( ui.oldItems );
-					that._bindChange( ui.newItems );
+		if ( $.observer ) {
+			this._observer = $.observer( that._toArray() );
+			$( this._observer ).bind( "change", function( event, ui ) {
+				if ( ui.path && ui.path.length ) {
+					var index = ui.path[0];
+					that.refreshItem( that._observer.getAt( index ) );
 				} else {
-					that._unbindChange( ui.items );
+					// TODO This could easily to incremental rerender to account for "insert", "remove" and "replaceAll" events.
+					that.refresh();
 				}
-				that.refresh();
-			});
+			} );
 		}
 	},
 
@@ -140,29 +138,10 @@ $.widget( "ui.grid", {
 	},
 
 	_destroy: function() {
-		if ( $.observable ) {
-			this._unbindChange( this.options.source );
-			// TODO see below
-			$.observable( this.options.source ).unbind( ".grid");
+		if ( $.observer ) {
+			this._observer.dispose();
 		}
 		// TODO implement actually destroying the grid
-	},
-
-	_bindChange: function( items ) {
-		var that = this;
-		$.each( items, function( index, item ) {
-			// TODO make namespace specific for this instance
-			$.observable( item ).bind( "change.grid", function() {
-				that.refreshItem( item );
-			});
-		});
-	},
-
-	_unbindChange: function( items ) {
-		$.each( items, function( index, item ) {
-			// TODO see above
-			$.observable( item ).unbind( "change.grid" );
-		});
 	},
 
 	_container: function() {
@@ -171,7 +150,7 @@ $.widget( "ui.grid", {
 	},
 
 	_newRow: function( item ) {
-		return $.tmpl( this.options.rowTemplate, item ).data( "grid-item", item );
+		return $.tmpl( this.options.rowTemplate, item ).data( "grid-item", item.data );
 	},
 
 	// can be customized by subwidgets
@@ -182,12 +161,11 @@ $.widget( "ui.grid", {
 
 	refresh: function() {
 		var gridHeight, headHeight, footHeight,
-			that = this,
 			tbody = this._container().empty();
 
-		$.each( this._toArray(), function( itemId, item ) {
-			that._newRow( item ).appendTo( tbody );
-		});
+		for ( var i = 0; i < this._observer.data.length; i++ ) {
+			this._newRow( this._observer.getAt( i ) ).appendTo( tbody );
+		}
 
 		gridHeight = this.uiGrid.outerHeight();
 		headHeight = this.uiGridHead.outerHeight();
@@ -226,7 +204,7 @@ $.widget( "ui.grid", {
 	refreshItem: function( item ) {
 		var that = this;
 		this._container().children().each(function() {
-			if ( $( this ).data( "grid-item" ) === item ) {
+			if ( $( this ).data( "grid-item" ) === item.data ) {
 				$( this ).replaceWith( that._newRow(item) );
 			}
 		});

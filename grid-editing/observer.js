@@ -117,7 +117,8 @@
                 if ( isArrayIndex ) {
                     childObserver._bubbleEvent = function( event, path ) {
                         var index = $.inArray( this, that._childObservers );
-                        path = "[" + index + "]" + ( path || "" );
+                        path = path || [];
+                        path.unshift( index );
                         $(that).triggerHandler( "change", { path: path, event: event } );
                         if ( that._bubbleEvent ) {
                             that._bubbleEvent( event, path );
@@ -128,9 +129,10 @@
                         that._childObservers[ index ] = null;
                     };
                 } else {
-                    var childPath = key.toString();
+                    var childPath = key;
                     childObserver._bubbleEvent = function( event, path ) {
-                        path = childPath + ( path || "" );
+                        path = path || [];
+                        path.unshift( childPath );
                         $(that).triggerHandler( "change", { path: path, event: event } );
                         if ( that._bubbleEvent ) {
                             that._bubbleEvent( event, "." + path );
