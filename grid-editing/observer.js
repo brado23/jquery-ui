@@ -98,10 +98,11 @@
 						break;
 					}
 
-					var eventToBubble = $.extend( { }, ui, { type: event.type, target: event.target } );
-					$( that ).triggerHandler( "change", { event: eventToBubble } );  // TODO Rename from "change"?
+					var path = [], 
+						eventToBubble = $.extend( { }, ui, { type: event.type, target: event.target } );
+					$( that ).triggerHandler( "change", { path: path, event: eventToBubble } );  // TODO Rename from "change"?
 					if ( that._bubbleEvent ) {
-						that._bubbleEvent( eventToBubble );
+						that._bubbleEvent( eventToBubble, path );
 					}
 				};
 
@@ -117,7 +118,6 @@
 				if ( isArrayIndex ) {
 					childObserver._bubbleEvent = function( event, path ) {
 						var index = $.inArray( this, that._childObservers );
-						path = path || [];
 						path.unshift( index );
 						$(that).triggerHandler( "change", { path: path, event: event } );
 						if ( that._bubbleEvent ) {
@@ -131,11 +131,10 @@
 				} else {
 					var childPath = key;
 					childObserver._bubbleEvent = function( event, path ) {
-						path = path || [];
 						path.unshift( childPath );
 						$(that).triggerHandler( "change", { path: path, event: event } );
 						if ( that._bubbleEvent ) {
-							that._bubbleEvent( event, "." + path );
+							that._bubbleEvent( event, path );
 						}
 					};
 					childObserver._detach = function () {

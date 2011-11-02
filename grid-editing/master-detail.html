@@ -24,14 +24,14 @@
 	var movies = store.load();
 
 	$(function() {
-		var observer = $.observer( movies );
-		$( observer ).bind( "change" , function () {
+		var moviesObserver = $.observer( movies );
+		$( moviesObserver ).bind( "change" , function () {
 			store.save();
 			renderList();
 		} );
 
 		function renderList() {
-			list.empty().append( $( "#movie-list-item" ).tmpl( observer ) );
+			list.empty().append( $( "#movie-list-item" ).tmpl( moviesObserver ) );
 		}
 
 		$(":submit").button();

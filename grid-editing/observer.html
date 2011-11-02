@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1">
+	<title>Grid: Observer sample</title>
+	<script src="../jquery-1.6.2.js"></script>
+	<script src="../external/jquery.tmpl.js"></script>
+	<script src="../ui/jquery.ui.observable.js"></script>
+	<script src="observer.js"></script>
+	<script>
+
+	$(function() {
+		var customers = [
+			{
+				name: "Margaret Finch",
+				age: 34,
+				addresses: [
+					{
+						street: "426 Bethpage Loop",
+						city: "Coverton",
+						zipcode: 14220,
+						districts: [ "Asterville", "Fiddlerock", "Ralferstead" ]
+					}
+				]
+			},
+			{
+				name: "Fred Jones",
+				age: 27,
+				addresses: [
+					{
+						street: "1423 Century Lane",
+						city: "Pittsburg",
+						zipcode: 42324,
+						districts: [ "Flagstone", "Shipfall" ]
+					},
+					{
+						street: "17 Woodlands Crescent",
+						city: "Northampton",
+						zipcode: 43222,
+						districts: [ "Ellensburg", "Cafferty" ]
+					}
+				]
+			}
+		];
+
+		var currentEdit;
+
+		var customersObserver = $.observer( customers );
+		$( customersObserver ).bind( "change", function( event, ui ) {
+			$("#observation").tmpl( { edit: currentEdit, ui: ui } ).appendTo( $( "#list" ) );
+		} );
+
+		currentEdit = "customers[0].age = 35";
+		$.observable( customersObserver.getAt(0).data ).property( "age", 35 );
+
+		currentEdit = "customers[1].addresses[1].city = \"Pinegrove\"";
+		$.observable( customersObserver.getAt(1).property("addresses").getAt(1).data ).property( "city", "Pinegrove" );
+
+		currentEdit = "customers[1].addresses[0].districts.insert(\"Treverton\")";
+		$.observable( customersObserver.getAt(1).property("addresses").getAt(0).property("districts").data ).insert( "Treverton" );
+
+		currentEdit = "customers[1].addresses[0].districts.remove(0)";
+		$.observable( customersObserver.getAt(1).property("addresses").getAt(0).property("districts").data ).remove( 0 );
+
+		currentEdit = "customers.remove(0)";
+		$.observable( customersObserver.data ).remove( 0 );
+	});
+	</script>
+</head>
+<body>
+
+<ul id="list">
+</ul>
+
+<script id="observation" type="text/x-jquery-tmpl">
+	<li>
+		<label for="edit">edit: </label>
+		<input style="width: 400px" name="edit" value="${ edit }"/>
+		<label for="edit-type">edit type: </label>
+		<input name="edit-type" value="${ ui.event.type }"/>
+		<label for="path">path: </label>
+		<input name="path" value="${ ui.path.toString() }"/>
+	</li>
+</script>
+
+</body>
+</html>
