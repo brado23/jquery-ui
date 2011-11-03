@@ -15,15 +15,15 @@
 		if ( !$.isArray( data ) ) {
 			var that = this;
 			for ( var key in data ) {
-				this[ key ] = (function( key ) {
+				this[ key ] = ( function( key ) {
 					return function() {
 						return that.property( key );
 					};
-				})(key);  // TODO Why the extra closure?
+				} )( key );  // TODO Why the extra closure?
 			}
 		}
 
-		this._childObservers = $.isArray(this.data) ? new Array(this.data.length) : {};  // TODO The array could be made sparse.
+		this._childObservers = $.isArray( this.data ) ? new Array( this.data.length ) : {};  // TODO The array could be made sparse.
 		// TODO Allocate _childObservers lazily?
 
 		this._bindHandler();  // TODO Fix enumeration and bind handler lazily?
@@ -71,7 +71,7 @@
 						break;
 
 					case "insert":
-						that._childObservers.splice.apply( that._childObservers, [ ui.index, 0 ].concat(new Array( ui.items.length )) );
+						that._childObservers.splice.apply( that._childObservers, [ ui.index, 0 ].concat( new Array( ui.items.length ) ) );
 						break;
 
 					case "remove":
@@ -80,7 +80,7 @@
 							removedChildObservers = that._childObservers.slice( index, index + itemCount );
 						that._childObservers.splice( index, itemCount );
 						$.each( removedChildObservers, function( unused, childObserver ) {
-							if (childObserver) {
+							if ( childObserver ) {
 								childObserver._dispose();
 							}
 						} );
@@ -94,7 +94,7 @@
 							}
 						} );
 
-						that._childObservers.splice.apply( that._childObservers, [ 0, ui.oldItems.length ].concat(new Array( ui.newItems.length )) );
+						that._childObservers.splice.apply( that._childObservers, [ 0, ui.oldItems.length ].concat( new Array( ui.newItems.length ) ) );
 						break;
 					}
 
@@ -119,7 +119,7 @@
 					childObserver._bubbleEvent = function( event, path ) {
 						var index = $.inArray( this, that._childObservers );
 						path.unshift( index );
-						$(that).triggerHandler( "change", { path: path, event: event } );
+						$( that ).triggerHandler( "change", { path: path, event: event } );
 						if ( that._bubbleEvent ) {
 							that._bubbleEvent( event, path );
 						}
@@ -150,7 +150,7 @@
 
 		_dispose: function() {
 			if ( this._handler ) {
-				$.observable( this.data ).unbind("change insert remove replaceAll", this._handler);
+				$.observable( this.data ).unbind( "change insert remove replaceAll", this._handler );
 				this._handler = null;
 			}
 
@@ -165,9 +165,9 @@
 		}
 	}
 
-	$.each( [ "getAt", "property" ], function() {  // TODO Re: "property", could be generalized to "path".
-		var isArrayIndex = this == "getAt";
-		observer.prototype[this] = function( key ) {
+	$.each( [ "getAt", "property" ], function( index, name ) {  // TODO Re: "property", could be generalized to "path".
+		var isArrayIndex = name == "getAt";
+		observer.prototype[ name ] = function( key ) {
 			// this._bindHandler();  // TODO Fix enumeration and bind handler lazily?
 			var childObserver = this._childObserver( key, isArrayIndex );
 			return childObserver.isObservable() ? childObserver : childObserver.data;  // TODO Why create an observer for scalars?
@@ -183,7 +183,7 @@
 			var dummyArray = [];
 			args[ arrayIndex ] = dummyArray;
 			for ( var i = 0; i < obj.data.length; i++ ) {  // TODO You can imagine an array observer that has a length property sync'd with the underlying array.
-				dummyArray.push( obj.getAt(i) );
+				dummyArray.push( obj.getAt( i ) );
 			}
 		}
 
